@@ -18,11 +18,16 @@ namespace LottotryDataRecoveryApp.Lib
 
             List<BC49> rows = [];
 
-            int drawNumber =  (int) db.BC49.ToList().Last().DrawNumber;
+            int drawNumber = (int)db.BC49
+                .OrderBy(d => d.DrawNumber)
+                .ToList()
+                .Last().DrawNumber;
+
             int lottoTypesNumber = db.LottoTypes
                 .Where(x => x.LottoName == (int)LottoNames.BC49)
                 .OrderBy(d => d.DrawNumber)
-                .ToList().Last().DrawNumber;
+                .ToList()
+                .Last().DrawNumber;
             
             using (StreamReader reader = new StreamReader(path))
             {

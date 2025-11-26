@@ -17,9 +17,17 @@ namespace LottotryDataRecoveryApp.Lib
             var path = GetDataPath("649.csv");
             List<Lotto649> rows = [];
 
-            int drawNumber =  (int) db.Lotto649.ToList().Last().DrawNumber;
-            int lottoTypesNumber = db.Lotto649.ToList().Last().DrawNumber;
-            
+            int drawNumber = (int)db.Lotto649
+                .OrderBy(d => d.DrawNumber)
+                .ToList()
+                .Last().DrawNumber;
+
+            int lottoTypesNumber = db.LottoTypes
+                .Where(x => x.LottoName == (int)LottoNames.Lotto649)
+                .OrderBy(d => d.DrawNumber)
+                .ToList()
+                .Last().DrawNumber;
+
             using (StreamReader reader = new StreamReader(path))
             {
                 string? line;
