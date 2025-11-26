@@ -18,3 +18,4 @@ build/
 # Environment files
 .env
 *.env
+/App.config
