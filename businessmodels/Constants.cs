@@ -23,7 +23,7 @@ namespace LottotryDataRecoveryApp.BusinessModels
         {
             BC49 = 49,
             Lotto649 = 49,
-            LottoMax = 50,
+            LottoMax = 52,
             LottoCash4Life = 60,
             DailyGrand = 49,
             DailyGrand_GrandNumber = 7,

@@ -78,6 +78,8 @@ namespace LottotryDataRecoveryApp.Lib
         {
             // get range of this number in history
             var list = await GetLottoTypesAsync((int)lottoName);
+            if (list.Count() <= 0) return 0;
+
             var sortedList = list.OrderByDescending(x => x.DrawDate);
             int probability = 0;
 
@@ -85,7 +87,7 @@ namespace LottotryDataRecoveryApp.Lib
             List<NumberDto> numbers = [];
             foreach (var item in sortedList)
             {
-                var n = item.Numbers.Where(x => x.Value == num).FirstOrDefault();
+                var n = item?.Numbers.Where(x => x.Value == num).FirstOrDefault();
                 if (n == null) continue;
 
                 n.LottoName = item.LottoName;
@@ -96,6 +98,7 @@ namespace LottotryDataRecoveryApp.Lib
             }
 
             var hits = numbers.Where(x => x.IsHit == true).ToList();
+            if (hits == null || hits.Count < 2) return 0;
 
             if ((hits[0].NumberofDrawsWhenHit > Constants.COLD_POINT ||
                 hits[1].NumberofDrawsWhenHit > Constants.COLD_POINT) &&
@@ -140,7 +143,7 @@ namespace LottotryDataRecoveryApp.Lib
                 }
             }
 
-            if (hits[0].NumberofDrawsWhenHit <= Constants.HOT_POINT &&
+            if (hits.Count > 3 && hits[0].NumberofDrawsWhenHit <= Constants.HOT_POINT &&
                 hits[1].NumberofDrawsWhenHit <= Constants.HOT_POINT &&
                 hits[2].NumberofDrawsWhenHit <= Constants.HOT_POINT &&
                 hits[3].NumberofDrawsWhenHit <= Constants.NORMAL_RANGE &&

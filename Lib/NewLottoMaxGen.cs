@@ -15,24 +15,29 @@ namespace LottotryDataRecoveryApp.Lib
             var path = GetDataPath("LOTTOMAX.csv");
             List<LottoMax> rows = [];
 
-            int drawNumber = (int)db.LottoMax
+
+            int drawNumber = db.LottoMax
                             .OrderBy(d => d.DrawNumber)
                             .ToList()
-                            .Last().DrawNumber;
+                            .LastOrDefault()?.DrawNumber ?? 0;
+
+            if (drawNumber == db.LottoMax.Max(x => x.DrawNumber)) return;
 
             int lottoTypesNumber = db.LottoTypes
                 .Where(x => x.LottoName == (int)LottoNames.LottoMax)
                 .OrderBy(d => d.DrawNumber)
                 .ToList()
-                .Last().DrawNumber;
+                .LastOrDefault()?.DrawNumber ?? 0;
 
             using (StreamReader reader = new StreamReader(path))
             {
                 string? line;
 
-                while ((line = reader.ReadLine()) != null)
+                while ((line = reader.ReadLine()) != null && line != string.Empty)
                 {
                     string[] arr = line.Split(',');
+                    if (int.Parse(arr[11]) == 0)  continue; // skip if bonus number is 0, which means the draw is not completed yet
+
                     if (int.Parse(arr[1]) <= lottoTypesNumber) return;
                     var entity = new LottotryDataRecoveryApp.LottoMax()
                     {
@@ -79,14 +84,24 @@ namespace LottotryDataRecoveryApp.Lib
 
                 var prevLottoType = db.LottoTypes
                 .Where(x => x.LottoName == (int)LottoNames.LottoMax)
-                .OrderByDescending(d => d.DrawNumber)
-                .FirstOrDefault();
+                .OrderBy(d => d.DrawNumber)
+                .ToList()
+                .LastOrDefault();
 
-                if (prevLottoType == null) continue;
+                //if (prevLottoType == null) continue;
 
-                var prevDraw = db.Numbers
+                var prevDraw = prevLottoType != null ? (db.Numbers
                     .Where(x => x.LottoTypeId == prevLottoType.Id)
-                    .OrderBy(n => n.Value).ToArray();
+                    .OrderBy(n => n.Value)
+                    .ToList()) : null;
+
+#if false
+                if (prevDraw.Count == 50)
+                {
+                    prevDraw.Add(new Number { Id = Guid.NewGuid(), Value = 51 });
+                    prevDraw.Add(new Number { Id = Guid.NewGuid(), Value = 52 });
+                }
+#endif
 
                 // Store to LottoType table
                 LottoType lottoType = new LottoType
@@ -115,7 +130,7 @@ namespace LottotryDataRecoveryApp.Lib
                                     lotto.Number5 != i &&
                                     lotto.Number6 != i &&
                                     lotto.Number7 != i &&
-                                    lotto.Bonus != i) ? prevDraw[i - 1].Distance + 1 : 0,
+                                    lotto.Bonus != i) ? (prevDraw != null && prevDraw[i - 1] != null ? (prevDraw[i - 1].Distance + 1) : 1) : 0,
 
                         IsHit = (lotto.Number1 == i ||
                                     lotto.Number2 == i ||
@@ -135,7 +150,7 @@ namespace LottotryDataRecoveryApp.Lib
                                     lotto.Number5 == i ||
                                     lotto.Number6 == i ||
                                     lotto.Number7 == i ||
-                                    lotto.Bonus == i) ? prevDraw[i - 1].Distance + 1 : 0,
+                                    lotto.Bonus == i) ? (prevDraw != null && prevDraw[i - 1] != null ? (prevDraw[i - 1].Distance + 1) : 1) : 0,
 
                         IsBonusNumber = lotto.Bonus == i ? true : false,
                         TotalHits = (lotto.Number1 == i ||
@@ -145,7 +160,7 @@ namespace LottotryDataRecoveryApp.Lib
                                     lotto.Number5 == i ||
                                     lotto.Number6 == i ||
                                     lotto.Number7 == i ||
-                                    lotto.Bonus == i) ? prevDraw[i - 1].TotalHits + 1 : prevDraw[i - 1].TotalHits,
+                                    lotto.Bonus == i) ? (prevDraw != null && prevDraw[i - 1] != null ? (prevDraw[i - 1].TotalHits + 1) : 1) : (prevDraw != null && prevDraw[i - 1] != null ? prevDraw[i - 1].TotalHits : 0),
 
                         // probability
                         Probability = CalculateProbability(LottoNames.LottoMax, i)?.Result ?? 0,

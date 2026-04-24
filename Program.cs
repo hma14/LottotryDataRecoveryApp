@@ -9,7 +9,8 @@ namespace LottotryDataRecoveryApp
             LottoDb dbContext = new ();
 
 
-            var obj = new NewDailyGrandGen(dbContext);
+            var obj = new NewLottoMaxGen(dbContext);
+            //var obj = new NewDailyGrandGen(dbContext);
             //var obj = new NewBC49Gen(dbContext);
             obj.ParseCsv();
             obj.InsertLottTypeTable();
