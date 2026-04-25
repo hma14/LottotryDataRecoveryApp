@@ -68,8 +68,8 @@ namespace LottotryDataRecoveryApp.Lib
         {
             var lastLottoType = db.LottoTypes
                 .Where(x => x.LottoName == (int)LottoNames.LottoMax)
-                .OrderByDescending(d => d.DrawNumber)
-                .FirstOrDefault();
+                .OrderBy(d => d.DrawNumber)
+                .LastOrDefault();
 
             int lastLottoTypeDrawNumber = lastLottoType?.DrawNumber ?? 0;
             int maxDrawNumber = db.LottoMax.Max(x => x.DrawNumber);
@@ -88,20 +88,11 @@ namespace LottotryDataRecoveryApp.Lib
                 .ToList()
                 .LastOrDefault();
 
-                //if (prevLottoType == null) continue;
-
                 var prevDraw = prevLottoType != null ? (db.Numbers
                     .Where(x => x.LottoTypeId == prevLottoType.Id)
                     .OrderBy(n => n.Value)
                     .ToList()) : null;
 
-#if false
-                if (prevDraw.Count == 50)
-                {
-                    prevDraw.Add(new Number { Id = Guid.NewGuid(), Value = 51 });
-                    prevDraw.Add(new Number { Id = Guid.NewGuid(), Value = 52 });
-                }
-#endif
 
                 // Store to LottoType table
                 LottoType lottoType = new LottoType
